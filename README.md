@@ -7,36 +7,37 @@ EMPTY:一个空的optional实例 用来通过empty() 重置被封装对象值为
 value：一个不是空的optional实例 ，被封装对象
 ````
 
-### 2.类中public函数：
+### 2.类中的public方法：
 ````
 //获得空的optional对象  
 static<T> Optional<T> empty();
 
-//转化对象为optional包装类型 如果为空抛出异常
+//转化对象为optional包装类型，如果为空抛出异常
 static <T> Optional<T> of(T value);
 
-//转化对象为optional包装类型 为空不报异常  
+//转化对象为optional包装类型，为空不报异常  
 static <T> Optional<T> ofNullable(T value);
 
 //获取包装的对象  
 T get();
 
-//判断optional包装的对象是否为空 返回boolean值 由！=判断  
+//判断optional包装的对象是否为空，返回boolean值由！=判断  
 boolean isPresent();
 
 //判断optional包装对象是否不为空并且使用consumer接口的函数没有异常  
-//Consumer函数接口是用来接受一个参数去执行 不返回值  
+//Consumer函数接口是用来接受一个参数去执行，不返回值  
 void ifPresent(Consumer<? super T > consumer);
 
-//Optional 拥有filter、map、flatmap流操作方式  
-//获取被包装的对象如果为空返回参数 参数不能是lambda  
+//获取被包装的对象，如果为空返回参数，参数不能是lambda  
 T orElse(T other);
 
-//获取被包装的对象 如果为空 返回lambda表达式的值  
+//获取被包装的对象，如果为空返回lambda表达式的值  
 T orElseGet(Supplier<? extends T> other);
 
-//获取被包装的对象 如果为空 抛出lambda表达式返回的异常  
+//获取被包装的对象，如果为空抛出lambda表达式返回的异常  
 <X extends Throwable> T orElseThrow(Supplier<?extends X> exceptionSupplier) throws X;
+
+ps.Optional 拥有filter、map、flatmap流操作方式 具体参考Streams API 
 ````
 ## lambda 表达式
 ### 1、lambda简介
@@ -180,7 +181,7 @@ static Integer lambda$1(int offset, String s) {
  Map<String, Integer> m1 = new HashMap<>();
  Map<Integer, String> m2 = new HashMap<>();
  ```
-#####2. 目标类型的上下文（Contexts for target typing）
+##### 2. 目标类型的上下文（Contexts for target typing）
 带有目标类型的上下文：
 - 变量声明
 - 赋值
@@ -264,3 +265,81 @@ lambda 表达式允许我们定义一个匿名方法，并允许我们以函数�
 - 类型上的实例方法引用：```ClassName::methodName```
 - 构造方法引用：```Class::new```
 - 数组构造方法引用：```TypeName[]::new```
+
+### 5、 题外话 
+##### 默认方法和静态接口方法（Default and static interface methods）
+Java SE 7 时代为一个已有的类库增加功能是非常困难的。具体的说，接口在发布之后就已经被定型，除非我们能够一次性更新所有该接口的实现，否则向接口添加方法就会破坏现有的接口实现。默认方法出现（之前被称为 虚拟扩展方法 或 守护方法）的目标即是解决这个问题，使得接口在发布之后仍能被逐步演化。  
+默认方法 利用面向对象的方式向接口增加新的行为。它是一种新的方法：接口方法可以是 抽象的 或是 默认的。默认方法拥有其默认实现，实现接口的类型通过继承得到该默认实现（如果类型没有覆盖该默认实现）。此外，默认方法不是抽象方法，所以我们可以放心的向函数式接口里增加默认方法，而不用担心函数式接口的单抽象方法限制。  
+当接口继承其它接口时，我们既可以为它所继承而来的抽象方法提供一个默认实现，也可以为它继承而来的默认方法提供一个新的实现，还可以把它继承而来的默认方法重新抽象化。  
+除了默认方法，Java SE 8 还在允许在接口中定义 静态 方法。这使得我们可以从接口直接调用和它相关的辅助方法（Helper method），而不是从其它的类中调用（之前这样的类往往以对应接口的复数命名，例如 Collections）。比如，我们一般需要使用静态辅助方法生成实现 Comparator 的比较器，在Java SE 8中我们可以直接把该静态方法定义在 Comparator 接口中：  
+```java
+public static <T, U extends Comparable<? super U>>
+    Comparator<T> comparing(Function<T, U> keyExtractor) {
+  return (c1, c2) -> keyExtractor.apply(c1).compareTo(keyExtractor.apply(c2));
+}
+```
+和其它方法一样，默认方法也可以被继承，大多数情况下这种继承行为和我们所期待的一致。不过，当类型或者接口的超类拥有多个具有相同签名的方法时，我们就需要一套规则来解决这个冲突：
+- 类的方法（class method）声明优先于接口默认方法。无论该方法是具体的还是抽象的。
+- 被其它类型所覆盖的方法会被忽略。这条规则适用于超类型共享一个公共祖先的情况。
+
+当两个独立的默认方法相冲突或是默认方法和抽象方法相冲突时会产生编译错误。这时我们需要显式覆盖超类方法。一般来说我们会定义一个默认方法，然后在其中显式选择超类方法：
+```java
+interface Robot implements Artist, Gun {
+  default void draw() { Artist.super.draw(); }
+}
+```
+
+### 6、 lambda的问题
+lambda尽管有很多的优点，但是它依旧拥有一些问题  
+比如在一个需要尽量减少GC的系统上(但是事实上确没有这样)。这个实现原本是为了避免创建太多对象。它里面大量使用了lambda表达式来作为进行回调处理。不幸的是，我们有好几个回调虽然没有捕获局部变量，但是需要引用当前类的成员变量或者函数。目前来看，好像还是会导致对象的创建。下面是作为说明的实例代码：
+```java
+public MessageProcessor() {} 
+
+public int processMessages() {
+    return queue.read(obj -> {
+        if (obj instanceof NewClient) {
+            this.processNewClient((NewClient) obj);
+        } 
+        ...
+    });
+}
+```
+在这个项目里，内存诊断显示内存占用量排前八的地方有六个是出自这里这个模式产生的对象，占用应用总内存的60%。  
+对于这个问题，我们有个很简单的解决方案。就是把这段代码抽取到构造函数里，然后用一个变量来引用调用点（call site）。下面是重写后的代码：
+```java
+private final Consumer<Msg> handler; 
+
+public MessageProcessor() {
+    handler = obj -> {
+        if (obj instanceof NewClient) {
+            this.processNewClient((NewClient) obj);
+        }
+        ...
+    };
+} 
+
+public int processMessages() {
+    return queue.read(handler);
+}
+```
+但是使用这种方式来优化，也存在着其他问题。
+1. 这里纯粹是为了性能才写这样不符合规范的代码。所以会导致可读性降低。
+2. 这里也有其他内存分配的问题。你在MessageProcessor里添加了字段，导致它需要占用更多内存。同时，lambda的创建以及变量的捕获都会导致MessageProcessor的构造函数变慢。
+
+我们之所以会有这样的方案，并不是实际有这样的场景，而是通过内存诊断才发现这个问题的，然后我们恰好有个合适的业务场景证实了这个优化的可行性。我们也只会创建一次对象，然后频繁使用lambda表达式的场景，这样的话缓存就变得非常有用了。和其他所有内存调优实践一样，科学的方法往往都是最值得推荐的。  
+
+这个方法也适用于其他想要对lambda表达式进行调优的场景。首先尽量编写干净、简单以及函数式的代码。任何优化，例如这种抽取，都是尽量用来对付一些棘手的问题。编写需要捕获创建对象的lambda表达式并不是坏事，就像用Java代码来调用new Foo()本身就没有任何问题一样。  
+
+这个实践也向我们建议使用lambda表达式的最佳方案就是按照常规编码习惯来用。如果lambda表达式只是用来表示小的，纯函数式的功能，那么它完全没有必要去捕获上下文的变量。就像其他所有事情一样 —— 越简单越高效。  
+
+### 7、 实际场景
+参考src里的代码
+
+
+本文转自：  
+[Java 8 Lambdas - A Peek Under the Hood](https://www.infoq.com/articles/Java-8-Lambdas-A-Peek-Under-the-Hood)  
+[揭开Java 8 Lambda表达式的神秘面纱](https://www.jianshu.com/p/2ecf6c71d7c5)  
+[深入理解Java 8 Lambda](http://lucida.me/blog/java-8-lambdas-insideout-language-features/)  
+以及个人理解
+
+
