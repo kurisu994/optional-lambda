@@ -13,6 +13,20 @@ public class Test {
     private static Random random = new Random(System.currentTimeMillis());
     private static StringBuffer UNKNOWN = new StringBuffer("Unknown");
 
+    /**
+     * 比较器
+     */
+    private static Comparator<SomeThing> comparator = new Comparator<SomeThing>() {
+        @Override
+        public int compare(SomeThing o1, SomeThing o2) {
+            if (o1.getPrice().equals(o2.getPrice())) {
+                return o1.getQuantity() - o2.getQuantity();
+            } else {
+                return o1.getPrice() - o2.getPrice() > 0 ? 1 : -1;
+            }
+        }
+    };
+
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
 
@@ -20,13 +34,13 @@ public class Test {
         someOne.setGender(SomeOne.Gender.female);
         someOne.setAge(13);
         someOne.setOneThing(someOne.createThing());
-        optional(someOne);
+        //optional(someOne);
 
 
         List<SomeThing> list = getSomeThings();
         //List<String> nameList1 = before(list);
         //List<String> nameList2 = nowLambda(list);
-        //groupBy(list);
+        groupBy(list);
         //combination(list);
 
 
@@ -35,8 +49,14 @@ public class Test {
         System.out.println("运行时长: " + (end - start) + "ms");
     }
 
+    private static String tests(String a) {
+        return UNKNOWN.append(a).toString();
+    }
 
     private static void optional(SomeOne someOne) {
+        /*
+        以前的写法
+         */
 //        if (someOne != null) {
 //            SomeOne.OneThing oneThing = someOne.getOneThing();
 //            if (oneThing != null) {
@@ -48,7 +68,9 @@ public class Test {
 //        }
 //        System.out.println(UNKNOWN.toString());
 
-
+        /*
+        java8
+         */
         String use = Optional.ofNullable(someOne)
                 .map(SomeOne::getOneThing)
                 .filter(r -> r.getThingName() != null && !"".equals(r.getThingName()))
@@ -59,10 +81,12 @@ public class Test {
         System.out.println(UNKNOWN.toString());
     }
 
-    private static String tests(String a) {
-        return UNKNOWN.append(a).toString();
-    }
-
+    /**
+     * 之前的写法
+     *
+     * @param list
+     * @return
+     */
     private static List<String> before(List<SomeThing> list) {
         List<SomeThing> tempList = new ArrayList<>();
         for (SomeThing someThing : list) {
@@ -78,19 +102,8 @@ public class Test {
         return nameList;
     }
 
-    private static Comparator<SomeThing> comparator = new Comparator<SomeThing>() {
-        @Override
-        public int compare(SomeThing o1, SomeThing o2) {
-            if (o1.getPrice().equals(o2.getPrice())) {
-                return o1.getQuantity() - o2.getQuantity();
-            } else {
-                return o1.getPrice() - o2.getPrice() > 0 ? 1 : -1;
-            }
-        }
-    };
-
     /**
-     * 基本
+     * 现在的写法
      *
      * @param list
      * @return
@@ -108,13 +121,13 @@ public class Test {
      */
 
     private static void groupBy(List<SomeThing> list) {
-//        DoubleSummaryStatistics summaryStatistics = list.stream().collect(Collectors.summarizingDouble(SomeThing::getPrice));
-//        Map<Integer, List<SomeThing>> map = list.stream().collect(Collectors.groupingBy(SomeThing::getQuantity));
-//        Map<Boolean, List<SomeThing>> map = list.stream().collect(Collectors.groupingBy(r -> r.getQuantity() > 25));
-//        Map<String, List<SomeThing>> map = list.stream().collect(Collectors.groupingBy(SomeThing::getDealer));
-//        Map<String, Long> map = list.stream().collect(Collectors.groupingBy(SomeThing::getDealer, Collectors.counting()));
+//        DoubleSummaryStatistics summaryStatistics = list.stream().collect(Collectors.summarizingDouble(SomeThing::getPrice)); //返回价格的统计数据 比如总价、平均数 等
+//        Map<Integer, List<SomeThing>> map = list.stream().collect(Collectors.groupingBy(SomeThing::getQuantity)); //通过数量分组 返回具体每个数量的对象集合
+//        Map<Boolean, List<SomeThing>> map = list.stream().collect(Collectors.groupingBy(r -> r.getQuantity() > 25));//通过具体某个条件拆分 返回满足条件的集合和不满足的集合
+//        Map<String, List<SomeThing>> map = list.stream().collect(Collectors.groupingBy(SomeThing::getDealer));//
+//        Map<String, Long> map = list.stream().collect(Collectors.groupingBy(SomeThing::getDealer, Collectors.counting()));//同个商家分组并统计具体数量
 //        Map<String, Double> map = list.stream().collect(Collectors.groupingBy(
-//                SomeThing::getDealer, Collectors.summingDouble(r -> Double.valueOf(new DecimalFormat("#.00").format(r.getPrice()))))
+//                SomeThing::getDealer, Collectors.summingDouble(r -> Double.valueOf(new DecimalFormat("#.00").format(r.getPrice())))) //计算商家的价格总量
 //        );
         Map<Double, List<SomeThing>> map = list.stream().collect(Collectors.groupingBy(
                 r -> Double.valueOf(new DecimalFormat("#.00").format(r.getPrice())), Collectors.mapping(x -> x, Collectors.toList()))
