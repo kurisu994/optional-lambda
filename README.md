@@ -38,3 +38,20 @@ T orElseGet(Supplier<? extends T> other);
 //获取被包装的对象 如果为空 抛出lambda表达式返回的异常  
 <X extends Throwable> T orElseThrow(Supplier<?extends X> exceptionSupplier) throws X;
 ````
+## lambda 表达式
+### 1、lambda简介
+````
+内容
+````
+### 2、lambda的历史
+````
+内容
+````
+### 3、lambda与匿名类
+````
+内容
+````
+### 4、lambda表达式的应用
+````
+内容
+````
