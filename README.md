@@ -3,8 +3,8 @@ jdk1.8  optional和lambda的常用案例
 ## Optional类详解
 ### 1.类中变量:
 ````
-EMPTY:一个空的optional实例 用来通过empty() 重置被封装对象值为空
-value：一个不是空的optional实例 ，被封装对象
+EMPTY: 创建一个Optional对象并重置被封装对象值为空
+value：被封装的对象
 ````
 
 ### 2.类中的public方法：
