@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
  * @author MakiseKurisu
  * @date 2018-12-24 19:43
  */
-public class Test {
+public class Lambda {
 
     private static Random random = new Random(System.currentTimeMillis());
     private static StringBuffer UNKNOWN = new StringBuffer("Unknown");
@@ -121,6 +121,7 @@ public class Test {
      */
 
     private static void groupBy(List<SomeThing> list) {
+        //聚合类averagingInt、最大最小值maxBy minBy、计数counting、分组groupingBy、字符串连接joining、分区partitioningBy、汇总summarizingInt、化简reducing、转换toXXX
 //        DoubleSummaryStatistics summaryStatistics = list.stream().collect(Collectors.summarizingDouble(SomeThing::getPrice)); //返回价格的统计数据 比如总价、平均数 等
 //        Map<Integer, List<SomeThing>> map = list.stream().collect(Collectors.groupingBy(SomeThing::getQuantity)); //通过数量分组 返回具体每个数量的对象集合
 //        Map<Boolean, List<SomeThing>> map = list.stream().collect(Collectors.groupingBy(r -> r.getQuantity() > 25));//通过具体某个条件拆分 返回满足条件的集合和不满足的集合
