@@ -2,7 +2,7 @@
 
 [来源](https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html)
 
-##简介
+## 简介
 
 stream接口和其他集合的区别
 
